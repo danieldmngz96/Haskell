@@ -1,33 +1,75 @@
+import Data.Char
+
 {--Data definitions--}
-data Respuesta respuesta = Digito Int | Palabras String
+data Respuesta = Digito Int | Palabra String
 data MenuOption = Op1 | Op2 | Op3
---charOp:: String -> Char
-  --charOp 'Op1' = "1";
-  --charOp 'Op2' = "2";
-  --charOp 'Op3' = "3";
+
 {--Main question--}
 ask  = "¿Qué te gustaría conocer más?"
-say :: MenuOption -> String
 
-{--Menu options--}
-say Op1 = "1. Proceso de inscripción a cursos"
-say Op2 = "2. Beneficios de Coursera + MinTIC"
-say Op3 = "3. Listado de cursos"
-{--Match--}
---exactMatch :: String -> [String] -> Maybe String
---exactMatch [] _ = Nothing
-  
+{--Main menu--}
+menu  = ["1. Proceso de inscripción a cursos", "2. Beneficios de Coursera + MinTIC", "3. Listado de cursos"]
+
+{--Print the menu--}
+printMenu :: Int -> IO ()
+printMenu i = do
+    if(i < length menu)
+        then do
+            if(i == 0)
+                then do
+                    putStrLn ask
+                    putStrLn ""
+                    putStrLn (menu !! i)
+                    printMenu (i + 1)
+
+            else do
+                putStrLn (menu !! i)
+                printMenu (i + 1)
+
+    else putStrLn ""
+
+{--Recursive function to get a matching word in the menu--}
+matchWord :: Int -> String -> [String] -> IO ()
+matchWord i strM a = do
+    if(i < length a)
+        then do
+            if(strM == (a !! i))
+                then do
+                    let (_:ys, wmenu) = splitAt 1 (words (menu !! i))
+                    let q = unwords wmenu
+                    putStrLn q
+                else matchWord (i + 1) strM a
+            else putStrLn "No se ha encontrado ninguna palabra!"
+
+
+{-- Match a given keyword in the menu --}
+match :: Int -> String -> [String] -> IO ()
+match i strMatch arr = do
+    if(i < length arr)
+        then do
+            let (_:ys, wmenu) = splitAt 1 (words (menu !! i))
+            matchWord i strMatch wmenu
+        else putStrLn "No se ha encontrado ninguna palabra!"
+    
+
 {--Main method--}
 main :: IO ()
 main = do
-    putStrLn ask
-    putStrLn ""
-    putStrLn (say Op1)
-    putStrLn (say Op2)
-    putStrLn (say Op3)
-    putStrLn ""
-    putStrLn "Selecciona una Opcion:"
-    --putStrLn (charOp1)
+    printMenu 0
     respuesta <- getLine
-    putStrLn ""
-    putStrLn respuesta
+
+    {--Only check for digits from 0 to 9--}
+    if(length respuesta <= 1)
+        then do
+            if(all isDigit respuesta)
+                then do
+                    if(read respuesta >= 0 || read respuesta < 3)
+                        then do
+                            let (_:ys, opEl) = splitAt 1 (words (menu !! (read respuesta - 1)))
+                            let q = unwords opEl
+                            putStrLn ""
+                            putStrLn q
+                    else putStrLn ""
+            else putStrLn "Opcion fuera de rango!"
+        else do
+            match 0 respuesta menu
